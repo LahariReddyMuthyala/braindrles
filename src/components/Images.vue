@@ -112,12 +112,12 @@ export default {
   data() {
     return {
       imageCount: [],
-      imageBaseUrl: 'https://dxugxjm290185.cloudfront.net/braindr',
+      imageBaseUrl: 'https://s3-us-west-1.amazonaws.com/braindrles',
     };
   },
   methods: {
     getUrl(key) {
-      return `${this.imageBaseUrl}/${key}.jpg`;
+      return `${this.imageBaseUrl}/${key}.png`;
     },
     getStyle(img) {
       const c = img.ave_score < 0.5 ? '#dc35457d' : '#28a74573';
