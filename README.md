@@ -1,9 +1,8 @@
 # braindrles
 
-> a firebase app for braindrles: Tinder for brains with lesions
-> a derivative of the highly popular braindr
+> a firebase app for braindrles: Tinder for brains with lesions (a derivative of braindr)
 
-## Note: Documentation for alldr in process; more to come
+## Note: Documentation for data review for all (aka alldr) in process; more to come
 
 ## Firebase setup
 
