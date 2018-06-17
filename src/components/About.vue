@@ -3,12 +3,11 @@
     <h1> About braindr. </h1>
 
     <b-container>
-      <p>Braindr is an app for quality control of images from the
-        <a href="https://www.biorxiv.org/content/early/2017/06/13/149369"> Healthy Brain Network </a>
+      <p>Braindrles is an app for quality control of stroke lesion masks on stroke brains
       </p>
 
       <p>
-        5 images for each T1-weighted MRI image have been uploaded to this site
+        Images for each T1-weighted MRI and stroke lesion mask have been uploaded to this site
       </p>
 
       <p>

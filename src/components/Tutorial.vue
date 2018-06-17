@@ -43,27 +43,29 @@
       </div>
 
       <div v-if="!currentImage && stage==1">
-
+        <!-- START EDITING HERE -->
         <p class="lead">
-          There are two types of brain tissue: Gray matter and White matter:
+          Stroke causes lesions, aka holes in the brain:
         </p>
 
         <div class="user-card unstack">
             <div class="image_area">
-              <img class="user-card__picture mx-auto" src="../assets/braindrIntro.png">
+              <img class="user-card__picture mx-auto" src="../assets/braindrlesIntro.png">
             </div>
           <div class="user-card__name">
-            Gray and White matter
+            Stroke lesions in different brains
           </div>
         </div>
 
         <p class="lead">
-          In a passing image, you can clearly see the two tissue types:
+          Lesions can be anywhere in the brain and come in all shapes and sizes.
+          <br>
+          In a passing image, you can clearly see the lesion correctly labled in red:
         </p>
 
         <div class="user-card unstack">
             <div class="image_area">
-              <img class="user-card__picture mx-auto" src="../assets/braindrPass.png">
+              <img class="user-card__picture mx-auto" src="../assets/braindrlesPass.png">
             </div>
           <div class="user-card__name">
             Example of a passing image
@@ -71,22 +73,34 @@
         </div>
 
         <p class="lead">
-          In a failing image, you cannot distinguish the tissue types.
+          In a failing image, the lesion mask (in red) is incorrectly labled.
           <br>
-          It looks like there are "bands" or blurriness:
+          Sometimes the lesion mask covers healthy tissue:
         </p>
 
         <div class="user-card unstack">
             <div class="image_area">
-              <img class="user-card__picture mx-auto" src="../assets/braindrFail.png">
+              <img class="user-card__picture mx-auto" src="../assets/braindrlesFailTooMuch.png">
             </div>
           <div class="user-card__name">
-            A failing image has motion "bands" or is blurry
+            Lesion mask covers healthy tissue
           </div>
         </div>
 
         <p class="lead">
-          Your task is to swipe to rate the images.
+          Sometimes the lesion mask covers too little tissue:
+        </p>
+
+        <div class="user-card unstack">
+            <div class="image_area">
+              <img class="user-card__picture mx-auto" src="../assets/braindrlesFailTooLittle.png">
+            </div>
+          <div class="user-card__name">
+            Lesion mask does not cover enough of the lesion.
+          </div>
+        </div>
+        <p class="lead">
+          Your task is to swipe to rate the images. Right is pass, left is fail.
         </p>
 
 
@@ -107,9 +121,9 @@
               <!--<img class="user-card__picture mx-auto" :src="currentImage.pic"
               v-hammer:swipe.horizontal="onSwipe"
               ></img>-->
-              <div v-if="status == 'loading'">
+              <!--<div v-if="status == 'loading'">
                 <grid-loader class="loader" color="#ffc107"></grid-loader>
-              </div>
+              </div>-->
               <progressive-img class="user-card__picture mx-auto" :src="currentImage.pic"
               v-hammer:swipe.horizontal="onSwipe"
               placeholder="https://unsplash.it/500"
@@ -287,13 +301,14 @@ export default {
   data() {
     return {
       imgCounts: [],
-      imageBaseUrl: 'https://dxugxjm290185.cloudfront.net/braindr',
+      imageBaseUrl: 'https://s3-us-west-1.amazonaws.com/braindrles',
       currentType: null,
       currentImage: null,
       startTime: 0,
       swipe: null,
       count: 0,
       stage: 0,
+      status: 'loading',
     };
   },
   computed: {
@@ -364,7 +379,8 @@ export default {
         console.log('here 0', type, img);
       }
       console.log('img is', img);
-      this.currentImage = { pic: `${this.imageBaseUrl}/${img['.key']}.jpg` };
+      this.currentImage = { pic: `${this.imageBaseUrl}/${img['.key']}.png` };
+      this.loading = 'ready';
       this.currentType = img.adminVote;
     },
     setSwipe(sw) {

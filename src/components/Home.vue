@@ -3,7 +3,7 @@
     <div class="jumbotron landing">
       <h1>{{msg}}</h1>
       <p class="lead buttons mt-3">
-        Swipe right for results
+        Swipe right for results {{foo}}
       </p>
       <p class="buttons mt-3">
         <router-link class="btn btn-primary white" to="/play"> Play Now </router-link>
@@ -27,7 +27,7 @@ export default {
   name: 'Home',
   data() {
     return {
-      msg: 'braindr.',
+      msg: 'braindr-les.',
     };
   },
 };

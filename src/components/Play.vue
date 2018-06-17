@@ -240,7 +240,7 @@
           pic: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==', // this is a blank gray base64
         },
         prevImage: null,
-        imageBaseUrl: 'https://dxugxjm290185.cloudfront.net/braindr',
+        imageBaseUrl: 'https://s3-us-west-1.amazonaws.com/braindrles',
         currentIndex: null,
         imageCount: [],
         preloaded: null,
@@ -286,12 +286,12 @@
     methods: {
       preloadImage(img) {
         this.preloaded = new Image();
-        this.preloaded.src = `${this.imageBaseUrl}/${img}.jpg`;
+        this.preloaded.src = `${this.imageBaseUrl}/${img}.png`;
       },
       setCurrentImage() {
         const fdata = _.filter(this.imageCount,
           val => val.num_votes === this.imageCount[0].num_votes);
-        const N = fdata.length;
+        const N = this.imageCount.length; //FOR PRIORITY SELECTION fdata.length;
         this.currentIndex = randomInt(0, N - 1);
         let key = this.currentCount['.key'];
         if (key === this.prevImage) {
@@ -307,7 +307,7 @@
           this.startTime = new Date();
         });*/
         this.startTime = new Date();
-        this.currentImage = `${this.imageBaseUrl}/${key}.jpg`;
+        this.currentImage = `${this.imageBaseUrl}/${key}.png`;
         console.log(this.currentImage);
         this.status = 'ready';
       },
@@ -358,10 +358,12 @@
         // set the image count
         this.$firebaseRefs.imageCount
             .child(this.currentCount['.key'])
-            .set({
-              ave_score: score.ave,
-              num_votes: score.size,
-            });
+            .child('ave_score').set(score.ave)
+
+        this.$firebaseRefs.imageCount
+            .child(this.currentCount['.key'])
+            .child('num_votes').set(score.size)
+
         // send the actual vote
         this.sendVote(0).then(()=>{
           console.log('sent vote')
@@ -462,10 +464,11 @@
         // set the image count
         this.$firebaseRefs.imageCount
             .child(this.currentCount['.key'])
-            .set({
-              ave_score: score.ave,
-              num_votes: score.size,
-            });
+            .child('ave_score').set(score.ave)
+
+        this.$firebaseRefs.imageCount
+            .child(this.currentCount['.key'])
+            .child('num_votes').set(score.size)
 
         this.sendVote(1).then(()=>{
           console.log('sent vote')
