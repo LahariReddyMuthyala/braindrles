@@ -2,7 +2,7 @@
 
 > a firebase app for braindrles: Tinder for brains with lesions (a derivative of braindr - Tinder for brains)
 
-##Overview on the general process
+## Overview on the general process
 
 1. Generate content (images, audio, etc. to rate)
 2. Set up Amazon S3 account to host said content.
