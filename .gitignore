@@ -18,3 +18,4 @@ selenium-debug.log
 
 # firebase
 src/firebaseConfig.js
+firebase/public/
