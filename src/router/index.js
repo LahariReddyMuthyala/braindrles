@@ -3,23 +3,23 @@ import Router from 'vue-router';
 import About from '@/components/About';
 import Home from '@/components/Home';
 import Profile from '@/components/Profile';
-import Coins from '@/components/Coins';
 import Play from '@/components/Play';
 import Login from '@/components/Login';
 import SignUp from '@/components/SignUp';
 import Terms from '@/components/Terms';
-import Upload from '@/components/Upload';
 import Unauthorized from '@/components/Unauthorized';
 import Leaderboard from '@/components/Leaderboard';
 import Tutorial from '@/components/Tutorial';
-import Viz from '@/components/Viz';
-import Images from '@/components/Images';
+import Review from '@/components/Review';
+import Chats from '@/components/Chats';
 import firebase from 'firebase';
+import config from '../config';
 
 Vue.use(Router);
 
 const router = new Router({
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior() {
+    // args can be (to, from, savedPosition)
     // return desired position
     return { x: 0, y: 0 };
   },
@@ -47,34 +47,11 @@ const router = new Router({
       },
     },
     {
-      path: '/coins/:id',
-      name: 'Coins',
-      component: Coins,
-    },
-    {
       path: '/play',
       name: 'Play',
       component: Play,
       meta: {
         requiresAuth: true,
-      },
-    },
-    {
-      path: '/upload',
-      name: 'Upload',
-      component: Upload,
-      meta: {
-        requiresAuth: true,
-        requiresAdmin: true,
-      },
-    },
-    {
-      path: '/images',
-      name: 'Images',
-      component: Images,
-      meta: {
-        requiresAuth: true,
-        requiresAdmin: true,
       },
     },
     {
@@ -108,9 +85,14 @@ const router = new Router({
       component: Tutorial,
     },
     {
-      path: '/viz',
-      name: 'Viz',
-      component: Viz,
+      path: '/chats',
+      name: 'Chats',
+      component: Chats,
+    },
+    {
+      path: '/review/:key',
+      name: 'Review',
+      component: Review,
     },
   ],
 });
@@ -127,7 +109,7 @@ router.beforeEach((to, from, next) => {
       firebase.database().ref(`/users/${currentUser.displayName}`).once('value')
         .then((snap) => {
           const data = snap.val();
-          if (!data.taken_tutorial) {
+          if (!data.taken_tutorial && config.needsTutorial) {
             next('tutorial');
           }
         });
@@ -137,10 +119,10 @@ router.beforeEach((to, from, next) => {
   }
 
   if (requiresAdmin) {
-    console.log('requires admin');
+    // console.log('requires admin');
     firebase.database().ref(`/settings/admins/${currentUser.displayName}`).once('value')
     .then((snap) => {
-      console.log('snap is', snap.val());
+      // console.log('snap is', snap.val());
       if (requiresAdmin && !snap.val()) next('unauthorized');
       else next();
     });

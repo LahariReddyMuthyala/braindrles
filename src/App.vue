@@ -9,12 +9,12 @@
          to see the profile or logout.
     -->
     <div class="content">
-      <div class="corner-ribbon bottom-right sticky blue">Beta</div>
-    <b-navbar toggleable="md" type="dark" variant="dark">
+      <div v-if="betaMode" class="corner-ribbon bottom-right sticky blue">Beta</div>
+    <b-navbar toggleable="md" type="dark" variant="info">
 
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
-      <b-navbar-brand to="/">braindr.</b-navbar-brand>
+      <b-navbar-brand to="/">{{brandName}}</b-navbar-brand>
 
       <!-- If the viewport is small, the navbar collapses.
           Everything in b-collapse is what gets collapsed.
@@ -26,7 +26,7 @@
           <b-nav-item to="/" exact>Home</b-nav-item>
           <b-nav-item to="/leaderboard">Leaderboard</b-nav-item>
           <b-nav-item to="/play">Play</b-nav-item>
-          <b-nav-item to="/upload" v-if="userData.admin">Upload</b-nav-item>
+          <b-nav-item to="/whalechats">Chats</b-nav-item>
         </b-navbar-nav>
 
         <!-- Right aligned nav items -->
@@ -53,7 +53,6 @@
               />
             {{userData.score}}
           </b-nav-text>
-
 
         </b-navbar-nav>
 
@@ -83,7 +82,6 @@
             <td class="align-middle text-center text-white">
               <router-link to="/about" class="text-white">About</router-link>
               <br>
-              <router-link to="/viz" class="text-white">Data Visualization </router-link>
             </td>
           </tr>
           <tr>
@@ -103,75 +101,47 @@ import Vue from 'vue';
 import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+
+// useful library for objects and arrays
 import _ from 'lodash';
+
+// firebase-related libraries
 import VueFire from 'vuefire';
 import firebase from 'firebase';
 import { db } from './firebaseConfig';
-import jelly from './assets/jelly.svg';
-import giraffe from './assets/giraffe.svg';
-import elephant from './assets/elephant.svg';
-import narwhal from './assets/narwhal.svg';
-import monkey from './assets/monkey.svg';
-import jelly_grey from './assets/jelly_gray.svg';
-import giraffe_grey from './assets/giraffe_gray.svg';
-import elephant_grey from './assets/elephant_gray.svg';
-import narwhal_grey from './assets/narwhal_gray.svg';
-import monkey_grey from './assets/monkey_gray.svg';
+
+// font-awesome icons
 import '../node_modules/font-awesome/css/font-awesome.min.css';
+
+// Here are some badges we set
+import jelly from './assets/badges/jelly.svg';
+import dolphin from './assets/badges/dolphin.svg';
+import orca from './assets/badges/orca.svg';
+import narwhal from './assets/badges/narwhal.svg';
+import bluewhale from './assets/badges/blueWhale_or_baleen.svg';
+
+// Here are the grayed out versions of the badges
+import jellyGrey from './assets/badges/jelly_gray.svg';
+import dolphinGrey from './assets/badges/dolphin_gray.svg';
+import orcaGrey from './assets/badges/orca_gray.svg';
+import narwhalGrey from './assets/badges/narwhal_gray.svg';
+import bluewhaleGrey from './assets/badges/blueWhale_or_baleen_gray.svg';
+
+// config options
+import config from './config';
 
 // explicit installation required in module environments
 Vue.use(VueFire);
 Vue.use(BootstrapVue);
-
-const ThemeHelper = function(){
-
-  const preloadTheme = (href) => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-
-    return new Promise((resolve, reject) => {
-      link.onload = (e) => {
-        const sheet = e.target.sheet;
-        sheet.disabled = true;
-        resolve(sheet);
-      };
-      link.onerror = reject;
-    });
-  };
-
-  const selectTheme = (themes, name) => {
-    /*if (name && !themes[name]) {
-      throw new Error(`"${name}" has not been defined as a theme.`);
-    }*/
-    Object.keys(themes).forEach(n => themes[n].disabled = (n !== name));
-  }
-
-  const themes = {};
-
-  return {
-    add(name, href) { return preloadTheme(href).then(s => themes[name] = s); },
-    set theme(name) { selectTheme(themes, name); },
-    get theme() { return Object.keys(themes).find(n => !themes[n].disabled); }
-  };
-};
 
 export default {
   name: 'app',
   data() {
     return {
       userInfo: {},
+      brandName: 'SwipesForScience',
+      betaMode: config.betaMode,
       allUsers: [],
-      Nusers: 50,
-      themes: {
-        default: '',
-        flatly: 'https://bootswatch.com/4/flatly/bootstrap.min.css',
-        materia: 'https://bootswatch.com/4/materia/bootstrap.min.css',
-        solar: 'https://bootswatch.com/4/solar/bootstrap.min.css',
-        darkly: 'https://bootswatch.com/4/darkly/bootstrap.min.css',
-      },
-      themeHelper: new ThemeHelper(),
       levels: {
         0: {
           level: 0,
@@ -187,23 +157,23 @@ export default {
           max: 750,
           character: 'jelly',
           img: jelly,
-          img_grey: jelly_grey,
+          img_grey: jellyGrey,
         },
         2: {
           level: 2,
           min: 751,
           max: 2000,
-          character: 'giraffe',
-          img: giraffe,
-          img_grey: giraffe_grey,
+          character: 'dolphin',
+          img: dolphin,
+          img_grey: dolphinGrey,
         },
         3: {
           level: 3,
           min: 2001,
           max: 3500,
-          character: 'elephant',
-          img: elephant,
-          img_grey: elephant_grey,
+          character: 'orca',
+          img: orca,
+          img_grey: orcaGrey,
         },
         4: {
           level: 4,
@@ -211,31 +181,21 @@ export default {
           max: 6000,
           character: 'narwhal',
           img: narwhal,
-          img_grey: narwhal_grey,
+          img_grey: narwhalGrey,
         },
         5: {
           level: 5,
           min: 6001,
           max: 8000,
-          character: 'monkey',
-          img: monkey,
-          img_grey: monkey_grey,
+          character: 'blue whale',
+          img: bluewhale,
+          img_grey: bluewhaleGrey,
         },
       },
     };
   },
 
   mounted() {
-    /*const added = Object.keys(this.themes).map(name => {
-      return this.themeHelper.add(name, this.themes[name]);
-    });
-    console.log('added?', added);
-
-    Promise.all(added).then(sheets => {
-      console.log(`${sheets.length} themes loaded`);
-      this.loading = false;
-      this.themeHelper.theme = 'default';
-    });*/
   },
 
   firebase: {
@@ -255,7 +215,6 @@ export default {
       });
       return data;
     },
-
     currentLevel() {
       let clev = {};
       _.mapValues(this.levels, (val) => {
@@ -268,9 +227,6 @@ export default {
     },
   },
   methods: {
-    switchTheme(theme) {
-      this.themeHelper.theme = theme;
-    },
     logout() {
       firebase.auth().signOut().then(() => {
         this.userInfo = null;
@@ -278,7 +234,6 @@ export default {
       });
     },
     setUser(user) {
-      console.log('setting user', this.userInfo);
       this.userInfo = user;
     },
     setTutorial(val) {
@@ -290,10 +245,8 @@ export default {
     this.userInfo = firebase.auth().currentUser;
     const self = this;
     firebase.auth().onAuthStateChanged((user) => {
-      console.log('hi');
       self.userInfo = user;
     });
-    console.log('app db is', db);
   },
 };
 </script>
@@ -347,76 +300,75 @@ export default {
 
   /* The ribbons */
 
-.corner-ribbon{
-  width: 200px;
-  background: #e43;
-  position: absolute;
-  top: 25px;
-  left: -50px;
-  text-align: center;
-  line-height: 50px;
-  letter-spacing: 1px;
-  color: #f0f0f0;
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
-}
+  .corner-ribbon{
+    width: 200px;
+    background: #e43;
+    position: absolute;
+    top: 25px;
+    left: -50px;
+    text-align: center;
+    line-height: 50px;
+    letter-spacing: 1px;
+    color: #f0f0f0;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+  }
 
-/* Custom styles */
+  /* Custom styles */
 
-.corner-ribbon.sticky{
-  position: fixed;
-}
+  .corner-ribbon.sticky{
+    position: fixed;
+  }
 
-.corner-ribbon.shadow{
-  box-shadow: 0 0 3px rgba(0,0,0,.3);
-}
+  .corner-ribbon.shadow{
+    box-shadow: 0 0 3px rgba(0,0,0,.3);
+  }
 
-/* Different positions */
+  /* Different positions */
 
-.corner-ribbon.top-left{
-  top: 25px;
-  left: -50px;
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
-}
+  .corner-ribbon.top-left{
+    top: 25px;
+    left: -50px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+  }
 
-.corner-ribbon.top-right{
-  top: 25px;
-  right: -50px;
-  left: auto;
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
-}
+  .corner-ribbon.top-right{
+    top: 25px;
+    right: -50px;
+    left: auto;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+  }
 
-.corner-ribbon.bottom-left{
-  top: auto;
-  bottom: 25px;
-  left: -50px;
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
-}
+  .corner-ribbon.bottom-left{
+    top: auto;
+    bottom: 25px;
+    left: -50px;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+  }
 
-.corner-ribbon.bottom-right{
-  top: auto;
-  right: -50px;
-  bottom: 25px;
-  left: auto;
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
-}
+  .corner-ribbon.bottom-right{
+    top: auto;
+    right: -50px;
+    bottom: 25px;
+    left: auto;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+  }
 
-/* Colors */
+  /* Colors */
 
-.corner-ribbon.white{background: #f0f0f0; color: #555;}
-.corner-ribbon.black{background: #333;}
-.corner-ribbon.grey{background: #999;}
-.corner-ribbon.blue{background: #007aff;
-z-index: 99}
-.corner-ribbon.green{background: #2c7;}
-.corner-ribbon.turquoise{background: #1b9;}
-.corner-ribbon.purple{background: #95b;}
-.corner-ribbon.red{background: #e43;}
-.corner-ribbon.orange{background: #e82;}
-.corner-ribbon.yellow{background: #ec0;}
-
+  .corner-ribbon.white{background: #f0f0f0; color: #555;}
+  .corner-ribbon.black{background: #333;}
+  .corner-ribbon.grey{background: #999;}
+  .corner-ribbon.blue{background: #007aff;
+  z-index: 99}
+  .corner-ribbon.green{background: #2c7;}
+  .corner-ribbon.turquoise{background: #1b9;}
+  .corner-ribbon.purple{background: #95b;}
+  .corner-ribbon.red{background: #e43;}
+  .corner-ribbon.orange{background: #e82;}
+  .corner-ribbon.yellow{background: #ec0;}
 </style>

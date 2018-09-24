@@ -20,7 +20,9 @@
         <b-form-group id="consentOpenButton"
                       :label="consentFormLabel"
                       label-for="openConsent">
-            <b-button v-if="!form.consented" variant="success" id="openConsent" @click="openConsentModal"> Open Consent Form </b-button>
+            <b-button v-if="!form.consented"
+             variant="success" id="openConsent"
+             @click="openConsentModal"> Open Consent Form </b-button>
         </b-form-group>
 
         <b-form-group id="emailAddressInputGroup"
@@ -72,8 +74,8 @@
         </b-form-group>
 
 
-
-        <b-button type="submit" variant="primary" :disabled="!validated || !form.consented">Submit</b-button>
+        <b-button type="submit"
+         variant="primary" :disabled="!validated || !form.consented">Submit</b-button>
 
         <p class="mt-3">
           Already have an account? <router-link to="/login">Log In</router-link>
@@ -92,6 +94,7 @@
 
   import firebase from 'firebase';
   import Terms from '@/components/Terms';
+  import config from '../config';
 
   export default {
     name: 'signup',
@@ -124,11 +127,11 @@
       onSubmit(e) {
         e.preventDefault();
         // check for a unique username
-        console.log('submitted form');
+        // console.log('submitted form');
         firebase.database().ref('users').child(this.form.username).once('value')
         .then((snapshot) => {
           const val = snapshot.val();
-          console.log('val is', val);
+          // console.log('val is', val);
           if (!val) {
             this.createAccount();
           } else {
@@ -151,10 +154,10 @@
       createAccount() {
         firebase.auth().createUserWithEmailAndPassword(this.form.email, this.form.password).then(
           (user) => {
-            console.log('user created', user);
+            // console.log('user created', user);
             this.updateProfile(user);
           }, (err) => {
-          console.log('error', err);
+          // console.log('error', err);
           this.errors.show = true;
           this.errors.message = err.message;
         });
@@ -175,8 +178,12 @@
           displayName: this.form.username,
         }).then(() => {
             // Profile updated successfully!
-          this.$router.replace('tutorial');
           this.insertUser(user);
+          if (config.needsTutorial) {
+            this.$router.replace('tutorial');
+          } else {
+            this.$router.replace('play');
+          }
         }, (err) => {
             // An error happened.
           this.errors.show = true;

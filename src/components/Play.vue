@@ -2,57 +2,14 @@
   <div id="play" class="container">
     <!-- Modal Component -->
     <b-modal id="levelUp" ref="levelUp" title="You've Levelled Up!" ok-only>
-      <p class="my-4">
+      <div class="my-4">
         <h3>Level {{currentLevel.level}}</h3>
         <img :src="currentLevel.img" width="120px" height="120px"/>
         <p class="lead">You've unlocked: {{currentLevel.character}}</p>
-      </p>
+      </div>
     </b-modal>
 
     <div class="main">
-      <transition :key="swipe" :name="swipe" >
-        <div class="user-card" :key="currentIndex">
-            <div class="image_area">
-              <div v-if="status == 'loading'">
-                <grid-loader class="loader" color="#ffc107"></grid-loader>
-              </div>
-              <progressive-img class="user-card__picture mx-auto" :src="currentImage"
-              v-hammer:swipe.horizontal="onSwipe"
-              placeholder="https://unsplash.it/500"
-              :aspect-ratio="1"
-              >
-              </progressive-img>
-            </div>
-          <div class="user-card__name">
-            <b-button variant="danger"
-              style="float:left"
-              @click="swipeLeft"
-              v-shortkey="['arrowleft']"
-              @shortkey="swipeLeft"
-              v-hammer:swipe.left="swipeLeft"
-            > <i class="fa fa-long-arrow-left" aria-hidden="true"></i> Fail </b-button>
-            <span class="align-middle">Fail or Pass</span>
-            <b-button variant="success"
-              style="float:right"
-              @click="swipeRight"
-              v-shortkey="['arrowright']"
-              @shortkey="swipeRight"
-            > Pass <i class="fa fa-long-arrow-right" aria-hidden="true"></i>  </b-button>
-          </div>
-        </div>
-        <!--<b-card :img-src="images[index].pic"
-                img-alt="Card image"
-                img-top
-                style="position: absolute"
-                class="mx-auto"
-                :key="index" v-if="images[index]">
-          <p class="card-text">
-            <b-button variant="danger" style="float:left" @click="swipeLeft"> Fail </b-button>
-            <b-button variant="success" style="float:right" @click="swipeRight"> Pass </b-button>
-          </p>
-        </b-card>-->
-
-      </transition>
 
       <b-alert :show="dismissCountDown"
          :variant="score.variant"
@@ -61,6 +18,15 @@
          @dismiss-count-down="countDownChanged">
          {{score.message}}
       </b-alert>
+
+      <WidgetSelector :widgetType="widgetType"
+       :widgetPointer="widgetPointer"
+       :widgetProperties="widgetProperties"
+       :widgetSummary="widgetSummary"
+       v-on:widgetRating="sendwidgetPointer"
+       :playMode='true'
+       ref="widget"
+      />
 
     </div>
 
@@ -89,11 +55,17 @@
 
   .user-card__picture {
       width: 100%;
+      height: 100%;
       display: block;
   }
 
+  .progressive-image-main {
+    width: 100%;
+    height: 100% !important;
+  }
+
   .image_area {
-    background: black;
+    background: white !important;
     position: relative;
   }
 
@@ -197,299 +169,204 @@
 </style>
 
 <script>
-  import Vue from 'vue';
   import _ from 'lodash';
-  import { VueHammer } from 'vue2-hammer';
-  import imagesLoaded from 'vue-images-loaded';
-  import GridLoader from 'vue-spinner/src/PulseLoader';
   import { db } from '../firebaseConfig';
-  import VueProgressiveImage from '../../node_modules/vue-progressive-image/dist/vue-progressive-image';
-
-  Vue.use(VueProgressiveImage);
-  Vue.use(VueHammer);
-
-  Vue.use(require('vue-shortkey'));
-
-  function randomInt(min, max) {
-    return Math.floor(Math.random() * ((max - min) + 1)) + min;
-  }
-
+  import config from '../config';
+  import WidgetSelector from './WidgetSelector';
 
   export default {
     name: 'play',
     firebase: {
-      // images: db.ref('images'),
-      imageCount: {
-        source: db.ref('imageCount').orderByChild('num_votes').limitToFirst(30),
-        readyCallback() {
-          console.log('is ready', this.imageCount);
-          this.status = 'loading';
-          /*_.map(this.imageCount, (v) => {
-            this.preloadImage(v['.key']);
-            console.log('preloaded', v['.key']);
-          });*/
-          this.setCurrentImage();
-        },
-      },
+      sampleCounts: db.ref('sampleCounts'),
+      userSeenSamples: db.ref('doneSamples').child(this.userInfo.displayName),
     },
     props: ['userInfo', 'userData', 'levels', 'currentLevel'],
     data() {
       return {
-        // images: [],
-        currentImage: {
-          pic: 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==', // this is a blank gray base64
-        },
-        prevImage: null,
-        imageBaseUrl: 'https://s3-us-west-1.amazonaws.com/braindrles',
-        currentIndex: null,
-        imageCount: [],
-        preloaded: null,
-        swipe: null,
         startTime: null,
         dismissSecs: 1,
-        pointsAward: null,
         dismissCountDown: 0,
-        score: {
+        feedback: {
           variant: 'warning',
           message: '',
         },
         status: 'loading',
+
+        // type of widget, named exactly how it is in the Widgets folder
+        widgetType: config.widgetType,
+
+        // specific properties for a widget
+        widgetProperties: config.widgetProperties,
+
+        // widgetPointer is a pointer to the keys in sampleCounts, sampleSummary, and sampleChats
+        widgetPointer: null,
+
+        // widget summary comes from firebase when the widget Pointer is set.
+        widgetSummary: {},
+
+        // get this data from the firebase database
+        // sampleCounts: [],
+        // userSeenSamples: [],
       };
-    },
-    computed: {
-      currentCount() {
-        return this.imageCount[this.currentIndex];
-      },
     },
     watch: {
       currentLevel() {
-        console.log('detected change', this.userData.score, this.currentLevel.min);
         if (this.userData.score === this.currentLevel.min && this.currentLevel.min) {
           this.$refs.levelUp.show();
           db.ref(`/users/${this.userInfo.displayName}`).child('level').set(this.currentLevel.level);
         }
       },
-      imageCount() {
-        /*_.map(this.imageCount, (v) => {
-          this.preloadImage(v['.key']);
-          // console.log('preloaded', v['.key']);
-        });*/
+      widgetPointer() {
+        /* eslint-disable */
+        this.widgetPointer ? db.ref('sampleSummary').child(this.widgetPointer).once('value', (snap) => {
+          this.widgetSummary = snap.val();
+        }) : null;
+        /* eslint-enable */
       },
     },
     mounted() {
       this.startTime = new Date();
+      this.setNextSampleId();
     },
-    components: { VueHammer, GridLoader },
+    components: { WidgetSelector },
     directives: {
-      imagesLoaded,
+
+    },
+    computed: {
+      samplePriority() {
+        return _.sortBy(this.sampleCounts, '.value');
+      },
     },
     methods: {
-      preloadImage(img) {
-        this.preloaded = new Image();
-        this.preloaded.src = `${this.imageBaseUrl}/${img}.png`;
-      },
-      setCurrentImage() {
-        const fdata = _.filter(this.imageCount,
-          val => val.num_votes === this.imageCount[0].num_votes);
-        const N = this.imageCount.length; //FOR PRIORITY SELECTION fdata.length;
-        this.currentIndex = randomInt(0, N - 1);
-        let key = this.currentCount['.key'];
-        if (key === this.prevImage) {
-          this.currentIndex += 1;
-          key = this.currentCount['.key'];
-        } else {
-          this.prevImage = key;
+      shuffle(array) {
+        // a method to shuffle an array, from
+        // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+        let currentIndex = array.length;
+        let temporaryValue;
+        let randomIndex;
+        // While there remain elements to shuffle...
+        while (currentIndex !== 0) {
+          // Pick a remaining element...
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+          // And swap it with the current element.
+          temporaryValue = array[currentIndex];
+          /* eslint-disable */
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+          /* eslint-enable */
         }
-        console.log('key is', key);
+        return array;
+      },
 
-        /*db.ref('images').child(key).once('value').then((snap) => {
-          this.currentImage = snap.val();
-          this.startTime = new Date();
-        });*/
+      sampleUserPriority() {
+        // A method that returns an array of samples prioritized by
+        // the least seen overall and by the user
+
+        // if the user is logged in then,
+        if (this.userInfo) {
+          // remove all the samples that the user has seen
+          let samplesRemain;
+          if (this.userSeenSamples) {
+            // if the user has seen some samples, remove them
+            samplesRemain = _.filter(this.samplePriority,
+              v => Object.keys(this.userSeenSamples).indexOf(v['.key']) < 0);
+
+            // but if the user has seen everything,
+            // return the total sample priority
+            samplesRemain = samplesRemain.length ? samplesRemain : this.samplePriority;
+          } else {
+            // the user hasn't seen anything yet, so all samples remain
+            samplesRemain = this.samplePriority;
+          }
+
+          if (samplesRemain.length) {
+            // some samples remain to be seen.
+            // get the smallest value that hasn't been seen by user yet.
+            // samplesRemain is sorted, so the first value has been seen the
+            // least number of times.
+            const minUnseen = samplesRemain[0]['.value'];
+            // then filter the rest of the samples
+            // so they are only the smallest seen value;
+            const samplesSmallest = _.filter(samplesRemain, c => c['.value'] === minUnseen);
+            // and then randomize the order;
+            return this.shuffle(samplesSmallest);
+          }
+
+          // TODO: check whether we actually hit this line. If we don't, remove it.
+          return this.shuffle(this.samplePriority);
+        }
+        // if samplePriority was empty the whole time, return null
+        return null;
+      },
+
+      sendWidgetResponse(response) {
+        // this method is called from the child widget
+        // it will first get feedback from the child on the response
+        // next, it will send the user response to the db
+        // then it will update the user's score and the sample's view count
+        // last, it will set the next sample.
+
+        // 1. get feedback from the widget, and display if needed
+        const feedback = this.$refs.widget.getFeedback(response);
+        if (feedback.show) {
+          this.feedback = feedback;
+          this.showAlert();
+        }
+
+        // 2. send the widget data
+        const timeDiff = new Date() - this.startTime();
+        this.sendVote(response, timeDiff);
+
+        // 3. update the score and count for the sample
+        this.updateScore(this.$refs.widget.getScore(response));
+        this.updateCount();
+
+        // 3. set the next Sample
+        this.setNextSampleId();
+      },
+
+      setNextSampleId() {
+        // method to get the next sample id to show in the widget
+        // view time gets reset first, then the new sample is found and set.
+
         this.startTime = new Date();
-        this.currentImage = `${this.imageBaseUrl}/${key}.png`;
-        console.log(this.currentImage);
-        this.status = 'ready';
+
+        const sampleId = this.sampleUserPriority()[0];
+
+        this.widgetPointer = sampleId;
       },
-      getUntrustedScore(data, vote) {
-        const size = data.num_votes;
-        const aveVote = data.ave_score;
-        const newAve = ((aveVote * size) + vote) / (size + 1);
-        console.log('size, preave, newave', size, aveVote, newAve, vote);
 
-        if (size <= 5) {
-          // not enough votes to say.
-          this.score.message = '+ 1';
-          this.score.variant = 'success';
-          return { score: 1, ave: newAve, size: size + 1 };
-        }
-
-        if (aveVote <= 0.3 || aveVote >= 0.7) {
-          // the group feels strongly. Do you agree w/ them?
-          if (aveVote <= 0.3 && !vote) {
-            this.score.message = '+ 1';
-            this.score.variant = 'success';
-            return { score: 1, ave: newAve, size: size + 1 };
-          } else if (aveVote >= 0.7 && vote) {
-            this.score.message = '+ 1';
-            this.score.variant = 'success';
-            return { score: 1, ave: newAve, size: size + 1 };
-          }
-
-          // you disagree w/ the majority. You are penalized
-          this.score.message = '+ 0';
-          this.score.variant = 'danger';
-          return { score: 0, ave: newAve, size: size + 1 };
-        }
-
-        this.score.message = '+ 1';
-        this.score.variant = 'success';
-        return { score: 1, ave: newAve, size: size + 1 };
-      },
-      swipeLeft() {
-        console.log(this.currentCount['.key']);
-        this.status = 'loading';
-        this.setSwipe('swipe-left');
-        const score = this.getUntrustedScore(this.currentCount, 0);
-        this.showAlert();
-        // set the user score
-        db.ref('users').child(this.userInfo.displayName)
-          .child('score').set(this.userData.score + score.score);
-        // set the image count
-        this.$firebaseRefs.imageCount
-            .child(this.currentCount['.key'])
-            .child('ave_score').set(score.ave)
-
-        this.$firebaseRefs.imageCount
-            .child(this.currentCount['.key'])
-            .child('num_votes').set(score.size)
-
-        // send the actual vote
-        this.sendVote(0).then(()=>{
-          console.log('sent vote')
+      sendVote(response, time) {
+        // the user's response for the sample is sent to the db
+        // along with their user displayName and the time they took to respond.
+        db.ref('votes').push({
+          user: this.userInfo.displayName,
+          sample: this.widgetPointer,
+          response,
+          time,
         });
-
-        this.setCurrentImage();
-
       },
-      sendVote(vote) {
-        //console.log('this startTime', this.startTime);
-        return db.ref('votes').push({
-          username: this.userInfo.displayName,
-          time: new Date() - this.startTime,
-          vote,
-          point: this.pointsAward,
-          image_id: this.currentCount['.key'],
-        });
 
-         /* this.$firebaseRefs.imageCount
-          .child(this.currentCount['.key'])
-          .child('num_votes')
-          .set(this.currentCount.num_votes + 1); */
+      updateScore(scoreIncrement) {
+        // this method update's the user's score by scoreIncrement;
+
+        db.ref('users')
+          .child(this.userInfo.displayName)
+          .child('score')
+          .transaction(score => (score || 0) + scoreIncrement);
       },
-      computeScore(data, vote) {
-        let voteScore = 0;
-        let size = 0;
 
-        _.mapValues(data, (v) => {
-          voteScore += v.vote;
-          size += 1;
-          return v.vote;
-        });
-
-        const aveVote = voteScore / size;
-        const newAve = (voteScore + vote) / (size + 1);
-
-        if (size <= 5) {
-          // not enough votes to say.
-          this.score.message = '+ 1';
-          this.score.variant = 'success';
-          return { score: 1, ave: newAve, size: size + 1 };
-        }
-
-        if (aveVote <= 0.3 || aveVote >= 0.7) {
-          // the group feels strongly. Do you agree w/ them?
-          if (aveVote <= 0.3 && !vote) {
-            this.score.message = '+ 1';
-            this.score.variant = 'success';
-            return { score: 1, ave: newAve, size: size + 1 };
-          } else if (aveVote >= 0.7 && vote) {
-            this.score.message = '+ 1';
-            this.score.variant = 'success';
-            return { score: 1, ave: newAve, size: size + 1 };
-          }
-
-          // you disagree w/ the majority. You are penalized
-          this.score.message = '+ 0';
-          this.score.variant = 'danger';
-          return { score: 0, ave: newAve, size: size + 1 };
-        }
-
-        this.score.message = '+ 1';
-        this.score.variant = 'success';
-        return { score: 1, ave: newAve, size: size + 1 };
+      updateCount() {
+        db.ref('sampleCounts')
+          .child(this.widgetPointer)
+          .transaction(count => (count || 0) + 1);
       },
-      getScore(vote) {
-        // get all scores for the images
-        // then run computeScore to get the points
 
-        return db.ref('votes')
-          .orderByChild('image_id')
-          .equalTo(this.currentCount['.key'])
-          .once('value')
-          .then((snap) => {
-            const data = snap.val();
-            console.log('snap data is', data);
-            const score = this.computeScore(data, vote);
-            this.pointsAward = score.score;
-            db.ref('users').child(this.userInfo.displayName)
-              .child('score').set(this.userData.score + score.score);
-
-            this.$firebaseRefs.imageCount
-                .child(this.currentCount['.key'])
-                .set({
-                  ave_score: score.ave,
-                  num_votes: score.size,
-                });
-          });
-      },
-      swipeRight() {
-        this.status = 'loading';
-        this.setSwipe('swipe-right');
-        const score = this.getUntrustedScore(this.currentCount, 1);
-        this.showAlert();
-        // set the user score
-        db.ref('users').child(this.userInfo.displayName)
-          .child('score').set(this.userData.score + score.score);
-        // set the image count
-        this.$firebaseRefs.imageCount
-            .child(this.currentCount['.key'])
-            .child('ave_score').set(score.ave)
-
-        this.$firebaseRefs.imageCount
-            .child(this.currentCount['.key'])
-            .child('num_votes').set(score.size)
-
-        this.sendVote(1).then(()=>{
-          console.log('sent vote')
-        });
-
-        this.setCurrentImage();
-      },
-      setSwipe(sw) {
-        console.log('setting swipe', sw);
-        this.swipe = sw;
-      },
-      onSwipe(evt) {
-        if (evt.direction === 2) {
-          this.swipeLeft();
-        } else {
-          this.swipeRight();
-        }
-      },
       countDownChanged(dismissCountDown) {
         this.dismissCountDown = dismissCountDown;
       },
+
       showAlert() {
         this.dismissCountDown = this.dismissSecs;
       },
