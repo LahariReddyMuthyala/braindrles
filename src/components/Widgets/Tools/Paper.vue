@@ -233,7 +233,7 @@ export default {
     },
 
     takeScreenshot() {
-      // eslint-disable-next-line
+      //eslint-disable-next-line
       const canvasData = this.view._context.canvas.toDataURL();
       const iframe = `<iframe width='100%' height='100%' src="${canvasData}" style="border: none;"></iframe>`;
       const x = window.open();
