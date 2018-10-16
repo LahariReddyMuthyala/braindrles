@@ -84,9 +84,13 @@ export default {
         const element = this;
         const worker = new LoadManifestWorker();
         worker.postMessage([manifestEntries, firebaseEntries]);
-        worker.onmessage = () => {
+        worker.onmessage = function onmessage(e) {
           element.status = 'complete';
-          element.addFirebaseListener();
+          if (e.data === 'done') {
+            element.addFirebaseListener();
+          } else {
+            element.progress += 1;
+          }
         };
       });
     },
