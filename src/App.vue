@@ -163,6 +163,8 @@ export default {
       config,
       showConfig: false,
       allUsers: [],
+      needsTutorial: config.needsTutorial,
+      navbarVariant: /* config.app.navbarVariant || */'info', //This created a bug on the navbar variant and prevented all the navbar to work
       levels: {
         0: {
           level: 0,
