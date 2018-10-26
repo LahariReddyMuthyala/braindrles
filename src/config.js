@@ -19,12 +19,27 @@ export default {
     //   delimiter: '__',
     // },
 
-  widgetType: 'ImageSwipe',
+  widgetType: 'ImageSwipeChoices',
   widgetProperties: {
-    baseUrlTemplate: 'https://s3-us-west-2.amazonaws.com/akeshavan-mindcontrol/hbnSplat/{0}/tiles/base_{1}.png',
-    delimiter: '__',
-    leftSwipeLabel: 'Fail',
-    rightSwipeLabel: 'Pass',
+    baseUrlTemplate: 'http://himatdata.s3.amazonaws.com/whaledr_renamed/{0}.jpg',
+    delimiter: '%',
+    choices: [
+      {
+        id: 'artifact',
+        name: 'Artifact',
+        variant: 'danger',
+      },
+      {
+        id: 'unknown',
+        name: 'Don\'t know',
+        variant: 'info',
+      },
+      {
+        id: 'brain',
+        name: 'Brain',
+        variant: 'success',
+      },
+    ],
   },
 
 
@@ -107,7 +122,7 @@ export default {
         },
         {
           text: `if you're not sure, click 'help' \n to discuss with scientists ${''}`,
-          pointer: 'sub-NDAREW671HZW__ax_86',
+          pointer: 'OO_HYVM1__YDH_2017_10_06T06_48_00',
           answer: 0,
           tutorialStep: 2,
         },
