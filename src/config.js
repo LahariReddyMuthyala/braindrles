@@ -19,7 +19,7 @@ export default {
     //   delimiter: '__',
     // },
 
-  widgetType: 'ImageSwipeChoices',
+  widgetType: 'ImageSwipe',
   widgetProperties: {
     baseUrlTemplate: 'http://himatdata.s3.amazonaws.com/whaledr_renamed/{0}.jpg',
     delimiter: '%',
