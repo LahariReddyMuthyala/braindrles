@@ -10,27 +10,112 @@ export default {
 
     // if manifestType = 'pubmed' then you should also include a manifestQuery key.
   manifestType: 'pubmed',
-  manifestQuery: 'neuroimaging AND autism AND DTI',
+  manifestQuery: '(neuroimaging OR "Magnetic Resonance Imaging" OR "MRI") AND brain AND autism',
 
-  widgetType: 'ImageSwipe',
+  widgetType: 'PubMedNLP',
   widgetProperties: {
-    baseUrlTemplate: 'http://himatdata.s3.amazonaws.com/whaledr_renamed/{0}.jpg',
-    delimiter: '%',
-    choices: [
+    stages: [
       {
-        id: 'artifact',
-        name: 'Artifact',
-        variant: 'danger',
+        id: 'relevant',
+        dependOn: null,
+        dependCriteria: {},
+        question: 'Is this a study about a group of human participants with Autism and MRI brain scans?',
+        bagOfWords: {},
+        questionType: 'MultiChoice',
+        questionConfig: {
+          reponses: [
+            {
+              text: 'No',
+              code: 0,
+              variant: 'danger',
+            },
+            {
+              text: 'Yes',
+              code: 1,
+              variant: 'success',
+            },
+          ],
+        },
       },
       {
-        id: 'unknown',
-        name: 'Don\'t know',
-        variant: 'info',
+        id: 'numAutism',
+        dependOn: 'relevant',
+        dependCriteria: {
+          statment: '==',
+          value: 1,
+        },
+        question: 'How many participants with autism?',
+        questionType: 'nlpNumber',
       },
       {
-        id: 'brain',
-        name: 'Brain',
-        variant: 'success',
+        id: 'numControl',
+        dependOn: 'relevant',
+        dependCriteria: {
+          statment: '==',
+          value: 1,
+        },
+        question: 'How many control participants?',
+        questionType: 'nlpNumber',
+      },
+      {
+        id: 'studyType',
+        dependOn: 'relevant',
+        dependCriteria: {
+          statment: '==',
+          value: 1,
+        },
+        question: 'Is this a cross sectional or longitudinal study?',
+        questionType: 'MultiChoice',
+        questionConfig: [
+          {
+            responses: [
+              {
+                text: 'cross sectional',
+                code: 'cs',
+                variant: 'warning',
+              },
+              {
+                text: 'longitudinal',
+                code: 'l',
+                variant: 'info',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'modality',
+        dependOn: 'relevant',
+        dependCriteria: {
+          statment: '==',
+          value: 1,
+        },
+        question: 'What modalities are being analyzed?',
+        questionType: 'MultiSelect',
+        questionConfig: {
+          reponses: [
+            {
+              text: 'T1w',
+              code: 't1w',
+            },
+            {
+              text: 'DWI',
+              code: 'dwi',
+            },
+            {
+              text: 'fMRI',
+              code: 'fmri',
+            },
+            {
+              text: 'Spectroscopy',
+              code: 'nmr',
+            },
+            {
+              text: 'Arterial Spin Labelling',
+              code: 'asl',
+            },
+          ],
+        },
       },
     ],
   },
