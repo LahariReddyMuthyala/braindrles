@@ -133,12 +133,12 @@ export default {
 
     // this comes from your firebase console
   firebaseKeys: {
-    apiKey: 'AIzaSyAYB2jWWdStY3yV8FjWo6pwIv6mLt2ezZw',
-    authDomain: 'braindrles.firebaseapp.com',
-    databaseURL: 'https://braindrles.firebaseio.com',
-    projectId: 'braindrles',
-    storageBucket: '',
-    messagingSenderId: '895217350482',
+    apiKey: 'AIzaSyCNLq_efw3EQLSJi1H9bFEwkkmvggrfoYI',
+    authDomain: 'braindr-les.firebaseapp.com',
+    databaseURL: 'https://braindr-les.firebaseio.com',
+    projectId: 'braindr-les',
+    storageBucket: 'braindr-les.appspot.com',
+    messagingSenderId: '102313057158',
   },
 
   app: {
