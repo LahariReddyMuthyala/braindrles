@@ -1,6 +1,8 @@
-# braindr
+# braindrles
 
-> a firebase app for braindr: Tinder for brains
+> a firebase app for braindrles: Tinder for brains with lesions (a derivative of braindr)
+
+## Note: Documentation for data review for all (aka alldr) in process; more to come
 
 ## Firebase setup
 
@@ -27,12 +29,18 @@
 ```
 
 5. run the app: `npm run dev` and open `localhost:8080`. Create a new account
-6. Go to the Database tab in Firebase. Create a key value pair like this:
+6. Go to the Database tab in Firebase. Create key value pairs like this:
 
 ```
 settings: {
   admins: {
     your_username: true,
+  },
+}
+
+users: {
+  your_username: {
+    admin: true
   }
 }
 

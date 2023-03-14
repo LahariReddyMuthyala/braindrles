@@ -21,7 +21,7 @@
 
       <div v-if="noData">
         <h1>There is no data in your database!</h1>
-        <p class="lead">Follow the instructions to set up your SwipesForScience App</p>
+        <p class="lead">Follow the instructions to set up your Braindrles App</p>
         <img class="blankImage" :src="blankImage" alt="there is no data" />
       </div>
 
